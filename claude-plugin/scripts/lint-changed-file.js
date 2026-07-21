@@ -79,7 +79,10 @@ async function main() {
 
   process.stdout.write(
     JSON.stringify({
-      additionalContext: `ai-guardrails lint findings for ${filePath}:\n${messages.join("\n")}`,
+      hookSpecificOutput: {
+        hookEventName: "PostToolUse",
+        additionalContext: `ai-guardrails lint findings for ${filePath}:\n${messages.join("\n")}`,
+      },
     })
   );
   process.exit(0);
