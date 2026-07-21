@@ -59,14 +59,32 @@ function ensureEslintConfig() {
   const importLine = usesEsm
     ? 'import guardrails from "ai-guardrails";\n'
     : 'const guardrails = require("ai-guardrails");\n';
-  const spreadPattern = usesEsm ? /export\s+default\s*\[/ : /module\.exports\s*=\s*\[/;
 
-  let updated;
-  if (spreadPattern.test(existing)) {
-    updated = importLine + existing.replace(spreadPattern, (match) => `${match}...guardrails, `);
-  } else {
-    updated = `${importLine}\n${existing}`;
+  // Matches `export default [` / `module.exports = [` (a plain array literal),
+  // or `export default someName.config(` / `module.exports = someName.config(`
+  // (a config-builder call like tseslint.config(...), which flattens spread
+  // entries the same way an array does). Anything else - a bare variable
+  // reference, a require()/import of another module, a function that isn't
+  // named `.config(` - isn't confidently spliceable, so we refuse to touch it
+  // rather than silently wiring in nothing while reporting success.
+  const exportPrefix = usesEsm ? "export\\s+default\\s*" : "module\\.exports\\s*=\\s*";
+  const spliceTarget = new RegExp(`${exportPrefix}(\\[|[\\w.]*\\.config\\()`);
+  const match = existing.match(spliceTarget);
+
+  if (!match) {
+    summaryLine(
+      "manual-wiring-needed",
+      `${fileName}: couldn't confidently splice ai-guardrails into this config shape - add "...guardrails" to your exported config yourself`
+    );
+    return;
   }
+
+  const spliceIndex = match.index + match[0].length;
+  const updated =
+    importLine +
+    existing.slice(0, spliceIndex) +
+    "...guardrails, " +
+    existing.slice(spliceIndex);
   fs.writeFileSync(existingPath, updated);
   summaryLine("updated", `${fileName}: added ai-guardrails to the existing config`);
 }

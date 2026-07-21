@@ -35,21 +35,25 @@ async function main() {
     process.exit(0);
   }
 
-  let ESLint;
+  let guardrailsConfigPath;
   try {
-    ({ ESLint } = require(require.resolve("eslint", { paths: [cwd] })));
-  } catch {
-    // eslint isn't installed in the consuming project; nothing to lint.
-    process.exit(0);
-  }
-
-  let guardrailsConfig;
-  try {
-    guardrailsConfig = require(
-      require.resolve("ai-guardrails/eslint-config", { paths: [cwd] })
-    );
+    guardrailsConfigPath = require.resolve("ai-guardrails/eslint-config", { paths: [cwd] });
   } catch {
     // ai-guardrails isn't installed in the consuming project; nothing to lint.
+    process.exit(0);
+  }
+  const guardrailsConfig = require(guardrailsConfigPath);
+
+  // Resolve eslint starting from ai-guardrails's own directory, not just cwd:
+  // npm doesn't always hoist a dependency's dependencies to the top-level
+  // node_modules (e.g. when the consuming project has a conflicting eslint
+  // version), in which case eslint only exists nested under
+  // node_modules/ai-guardrails/node_modules/eslint.
+  let ESLint;
+  try {
+    const guardrailsDir = path.dirname(guardrailsConfigPath);
+    ({ ESLint } = require(require.resolve("eslint", { paths: [guardrailsDir, cwd] })));
+  } catch {
     process.exit(0);
   }
 
