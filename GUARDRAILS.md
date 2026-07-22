@@ -34,12 +34,12 @@ See the [README](README.md) for what `init` does.
 - `no-async-promise-executor` - blocks `new Promise(async (resolve) => {})`, which silently swallows errors thrown inside the executor
 - `@typescript-eslint/no-unused-vars` - catches leftover dead code/imports, the same problem Knip targets but free and immediate
 
-**Async safety (type-aware - needs `parserOptions.project` wired up, slower lint runs, but the single most consequential class of silent AI-generated bug)**
+**Async safety (type-aware - needs `parserOptions.projectService` wired up, slower lint runs, but the single most consequential class of silent AI-generated bug)**
 - `@typescript-eslint/no-floating-promises` - catches an async call that's never awaited (a write that never finishes, an error that never surfaces)
 - `@typescript-eslint/no-misused-promises` - catches a promise used where a boolean/void was expected (e.g. `if (asyncFn())`, an async handler passed where a sync one is required)
 
 **Node-specific (only if the project runs on Node)**
-- `n/no-deprecated-api` (`eslint-plugin-n`) - flags deprecated/removed Node core APIs by name, including the exact `new Buffer()` example used below. This is what actually catches "no stale APIs" mechanically - moved here from the review-only list since a real rule exists for it.
+- `n/no-deprecated-api` (`eslint-plugin-n`) - flags deprecated/removed Node core APIs by name, including `new Buffer()`. This is what actually catches "no stale APIs" mechanically - moved here from the review-only list since a real rule exists for it.
 
 **Optional, per test framework (pick the one matching the project's test runner)**
 - `jest/expect-expect` or the vitest-plugin equivalent - fails a test that never calls an assertion, catching the emptiest form of a tautological test. Framework-specific, so not part of the core universal set.
