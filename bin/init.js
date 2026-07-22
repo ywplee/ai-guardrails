@@ -89,15 +89,16 @@ function ensureEslintConfig() {
     ? 'import guardrails from "ai-guardrails";\n'
     : 'const guardrails = require("ai-guardrails");\n';
 
-  // Matches `export default [` / `module.exports = [` (a plain array literal),
-  // or `export default someName.config(` / `module.exports = someName.config(`
-  // (a config-builder call like tseslint.config(...), which flattens spread
-  // entries the same way an array does). Anything else - a bare variable
-  // reference, a require()/import of another module, a function that isn't
-  // named `.config(` - isn't confidently spliceable, so we refuse to touch it
-  // rather than silently wiring in nothing while reporting success.
+  // Matches `export default [` / `module.exports = [` (a plain array literal);
+  // `export default someName.config(` / `module.exports = someName.config(`
+  // (a config-builder call like tseslint.config(...)); or `export default
+  // defineConfig(` (ESLint 9's own recommended helper). All three flatten
+  // spread entries the same way an array does. Anything else - a bare
+  // variable reference, a require()/import of another module, a function
+  // that isn't one of these - isn't confidently spliceable, so we refuse to
+  // touch it rather than silently wiring in nothing while reporting success.
   const exportPrefix = usesEsm ? "export\\s+default\\s*" : "module\\.exports\\s*=\\s*";
-  const spliceTarget = new RegExp(`${exportPrefix}(\\[|[\\w.]*\\.config\\()`);
+  const spliceTarget = new RegExp(`${exportPrefix}(\\[|[\\w.]*\\.config\\(|defineConfig\\()`);
   const match = withoutComments.match(spliceTarget);
 
   if (!match) {
