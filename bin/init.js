@@ -34,7 +34,27 @@ function findExistingConfigPath() {
   return null;
 }
 
+// ESLint 9 also accepts a TypeScript config file. We can't safely splice
+// TS syntax, and creating eslint.config.js alongside it would silently
+// shadow it (ESLint resolves .js before .ts), so just detect it and bail.
+function findExistingTsConfigPath() {
+  for (const name of ["eslint.config.ts", "eslint.config.mts", "eslint.config.cts"]) {
+    const candidate = path.join(CWD, name);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
 function ensureEslintConfig() {
+  const existingTsPath = findExistingTsConfigPath();
+  if (existingTsPath) {
+    summaryLine(
+      "manual-wiring-needed",
+      `${path.basename(existingTsPath)}: TypeScript ESLint configs aren't spliced automatically - add "...guardrails" to your exported config yourself`
+    );
+    return;
+  }
+
   const existingPath = findExistingConfigPath();
   const esm = isEsmProject();
 
