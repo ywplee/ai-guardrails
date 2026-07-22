@@ -1,0 +1,6 @@
+{
+  "name": "ai-guardrails",
+  "displayName": "ai-guardrails",
+  "description": "Lints just-touched files with the ai-guardrails ESLint rules and loads GUARDRAILS.md before coding tasks.",
+  "version": "1.0.0"
+}
