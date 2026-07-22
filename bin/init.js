@@ -89,7 +89,13 @@ function ensureEslintConfig() {
   // rather than silently wiring in nothing while reporting success.
   const exportPrefix = usesEsm ? "export\\s+default\\s*" : "module\\.exports\\s*=\\s*";
   const spliceTarget = new RegExp(`${exportPrefix}(\\[|[\\w.]*\\.config\\()`);
-  const match = existing.match(spliceTarget);
+  // Search a version with comments blanked out (same length, so indices still
+  // line up with `existing`) so a commented-out example export doesn't match
+  // instead of the real one, splicing into dead text while reporting success.
+  const withoutComments = existing.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, (m) =>
+    m.replace(/[^\n]/g, " ")
+  );
+  const match = withoutComments.match(spliceTarget);
 
   if (!match) {
     summaryLine(
