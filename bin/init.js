@@ -109,13 +109,27 @@ function ensureEslintConfig() {
   }
 
   const spliceIndex = match.index + match[0].length;
+  const insertAt = leadingDirectiveEnd(existing);
   const updated =
+    existing.slice(0, insertAt) +
     importLine +
-    existing.slice(0, spliceIndex) +
+    existing.slice(insertAt, spliceIndex) +
     "...guardrails, " +
     existing.slice(spliceIndex);
   fs.writeFileSync(existingPath, updated);
   summaryLine("updated", `${fileName}: added ai-guardrails to the existing config`);
+}
+
+// A shebang and/or a "use strict" directive prologue must stay the first
+// statement(s) in the file to take effect, so the import goes after them
+// rather than always at index 0.
+function leadingDirectiveEnd(text) {
+  let idx = 0;
+  const shebang = text.match(/^#![^\n]*\n/);
+  if (shebang) idx += shebang[0].length;
+  const directive = text.slice(idx).match(/^\s*["']use strict["'];?\s*\n/);
+  if (directive) idx += directive[0].length;
+  return idx;
 }
 
 function ensureAgentsMd() {

@@ -57,18 +57,28 @@ async function main() {
     process.exit(0);
   }
 
-  const eslint = new ESLint({
-    cwd,
-    overrideConfigFile: true,
-    overrideConfig: guardrailsConfig,
-  });
-
+  // Try the full config (core + type-aware rules) first. Type-aware rules
+  // need parserOptions.projectService to resolve a tsconfig covering the
+  // file; when it can't (an edited .ts file outside any tsconfig, or no
+  // tsconfig at all), ESLint throws for the whole run. Falling back to a
+  // core-only pass means a type-aware failure doesn't also swallow the
+  // core rules (no-empty, no-eval, etc.) that don't need type info.
   let results;
   try {
-    results = await eslint.lintFiles([resolvedPath]);
-  } catch (err) {
-    process.stderr.write(`ai-guardrails lint hook failed: ${err.message}\n`);
-    process.exit(1);
+    const full = new ESLint({ cwd, overrideConfigFile: true, overrideConfig: guardrailsConfig });
+    results = await full.lintFiles([resolvedPath]);
+  } catch {
+    try {
+      const coreOnly = new ESLint({
+        cwd,
+        overrideConfigFile: true,
+        overrideConfig: [guardrailsConfig.coreConfig],
+      });
+      results = await coreOnly.lintFiles([resolvedPath]);
+    } catch (err) {
+      process.stderr.write(`ai-guardrails lint hook failed: ${err.message}\n`);
+      process.exit(1);
+    }
   }
 
   const messages = results.flatMap((result) =>
