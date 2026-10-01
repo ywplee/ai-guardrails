@@ -20,6 +20,11 @@
     "llm",
     "guardrails"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ywplee/ai-guardrails.git"
+  },
+  "homepage": "https://github.com/ywplee/ai-guardrails#readme",
   "license": "MIT",
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^8.0.0",
