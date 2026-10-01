@@ -6,8 +6,11 @@ Three layers: rules an ESLint config enforces automatically, code-level conventi
 ## Install
 
 ```sh
+npm install --save-dev github:ywplee/ai-guardrails
 npx ai-guardrails init
 ```
+
+Install it from GitHub as shown. The name `ai-guardrails` on the npm registry belongs to a different, unrelated package, so never run `npx ai-guardrails` or `npm install ai-guardrails` in a project that hasn't installed this repo first. `init` writes an import of `ai-guardrails` into your ESLint config, so whatever package sits at that name runs every time ESLint loads.
 
 See the [README](README.md) for what `init` does.
 
